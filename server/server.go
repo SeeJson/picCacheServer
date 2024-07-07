@@ -16,7 +16,7 @@ const (
 	apiBasePath = "/api/" + apiVersion + "/"
 
 	// path to cache.
-	cachePath      = apiBasePath + "cache/"
+	cachePath      = apiBasePath + "cache"
 	statsPath      = apiBasePath + "stats"
 	cacheClearPath = apiBasePath + "cache/clear"
 	// server version.

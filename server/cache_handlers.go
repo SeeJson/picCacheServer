@@ -72,13 +72,6 @@ type ReqPutPicCache struct {
 }
 
 func putCacheHandler(w http.ResponseWriter, r *http.Request) {
-	target := r.URL.Path[len(cachePath):]
-	if target == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("can't put a key if there is no key."))
-		log.Print("empty request.")
-		return
-	}
 
 	entry, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -102,9 +95,7 @@ func putCacheHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	log.Printf("stored \"%s\" in cache.", target)
-	w.WriteHeader(http.StatusCreated)
-
+	w.WriteHeader(http.StatusOK)
 	url := "http://127.0.0.1:9090/api/v1/cache?seq=" + strconv.Itoa(int(seq)) + "&key=" + pictureKey
 
 	//respMap := make(map[string]string)
@@ -114,13 +105,6 @@ func putCacheHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func postCacheHandler(w http.ResponseWriter, r *http.Request) {
-	target := r.URL.Path[len(cachePath):]
-	if target == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("can't put a key if there is no key."))
-		log.Print("empty request.")
-		return
-	}
 
 	entry, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -134,8 +118,7 @@ func postCacheHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	log.Printf("stored \"%s\" in cache.", target)
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(http.StatusOK)
 
 	url := "http://127.0.0.1:9090/api/v1/cache?seq=" + strconv.Itoa(int(seq)) + "&key=" + pictureKey
 
