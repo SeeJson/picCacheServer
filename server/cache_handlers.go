@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/SeeJson/picCacheServer/pictureCache"
 	"io"
 	"log"
@@ -16,6 +18,8 @@ func cacheIndexHandler() http.Handler {
 			getCacheHandler(w, r)
 		case http.MethodPut:
 			putCacheHandler(w, r)
+		case http.MethodPost:
+			postCacheHandler(w, r)
 		case http.MethodDelete:
 			deleteCacheHandler(w, r)
 		}
@@ -63,7 +67,53 @@ func getCacheHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(entry.Bytes())
 }
 
+type ReqPutPicCache struct {
+	Url string `json:"url"`
+}
+
 func putCacheHandler(w http.ResponseWriter, r *http.Request) {
+	target := r.URL.Path[len(cachePath):]
+	if target == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("can't put a key if there is no key."))
+		log.Print("empty request.")
+		return
+	}
+
+	entry, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	var req ReqPutPicCache
+	if err := json.Unmarshal(entry, &req); nil != err {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	data, err := downLoad(req.Url)
+	if err := json.Unmarshal(entry, &req); nil != err {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	isSave, seq, _, pictureKey := cache.SavePicture(data)
+	if !isSave {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	log.Printf("stored \"%s\" in cache.", target)
+	w.WriteHeader(http.StatusCreated)
+
+	url := "http://127.0.0.1:9090/api/v1/cache?seq=" + strconv.Itoa(int(seq)) + "&key=" + pictureKey
+
+	//respMap := make(map[string]string)
+	//respMap["url"] = url
+	//respByte, _ := json.Marshal(respMap)
+	w.Write([]byte(url))
+}
+
+func postCacheHandler(w http.ResponseWriter, r *http.Request) {
 	target := r.URL.Path[len(cachePath):]
 	if target == "" {
 		w.WriteHeader(http.StatusBadRequest)
@@ -110,4 +160,21 @@ func deleteCacheHandler(w http.ResponseWriter, r *http.Request) {
 	//}
 	// this is what the RFC says to use when calling DELETE.
 	w.WriteHeader(http.StatusOK)
+}
+
+func downLoad(url string) (data []byte, err error) {
+	v, err := http.Get(url)
+	if err != nil {
+		fmt.Printf("Http get [%v] failed! %v", url, err)
+		return data, err
+	}
+	defer v.Body.Close()
+
+	data, err = io.ReadAll(v.Body)
+	if err != nil {
+		fmt.Printf("Read http response failed! %v", err)
+		return data, err
+	}
+
+	return data, nil
 }
