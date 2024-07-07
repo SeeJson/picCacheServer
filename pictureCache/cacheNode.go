@@ -23,7 +23,7 @@ func (node *CacheNode) init(totalSize uint32) {
 	node.buff = make([]byte, totalSize, totalSize)
 }
 
-//保存图片
+// 保存图片
 func (node *CacheNode) savePicture(pictureBuff []byte) (isSave bool, index uint32) {
 
 	isSave = false
@@ -38,7 +38,7 @@ func (node *CacheNode) savePicture(pictureBuff []byte) (isSave bool, index uint3
 	return
 }
 
-//获取图片
+// 获取图片
 func (node *CacheNode) getPicture(index, pictureSize uint32) (pictureBuff []byte) {
 	pictureBuff = nil
 	if index+pictureSize <= node.curIndex {
@@ -60,8 +60,8 @@ func (node *CacheNode) setPictureSeq(seq uint64) {
 
 func (node *CacheNode) clear() {
 
-	node.curIndex = 0
 	node.picturesSeq = node.picturesSeq[0:0]
+	node.curIndex = 0
 
 	return
 }

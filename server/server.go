@@ -40,7 +40,6 @@ func init() {
 	if maxMemory == 0 {
 		maxMemory = maxPicCacheMemory
 	}
-
 	cache = pictureCache.GetPictureCache()
 	cache.Init(maxMemory)
 }
