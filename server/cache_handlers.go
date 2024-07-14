@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/SeeJson/picCacheServer/pictureCache"
 	"io"
@@ -16,8 +15,6 @@ func cacheIndexHandler() http.Handler {
 		switch r.Method {
 		case http.MethodGet:
 			getCacheHandler(w, r)
-		case http.MethodPut:
-			putCacheHandler(w, r)
 		case http.MethodPost:
 			postCacheHandler(w, r)
 		case http.MethodDelete:
@@ -71,39 +68,6 @@ type ReqPutPicCache struct {
 	Url string `json:"url"`
 }
 
-func putCacheHandler(w http.ResponseWriter, r *http.Request) {
-
-	entry, err := io.ReadAll(r.Body)
-	if err != nil {
-		log.Print(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	var req ReqPutPicCache
-	if err := json.Unmarshal(entry, &req); nil != err {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	data, err := downLoad(req.Url)
-	if err := json.Unmarshal(entry, &req); nil != err {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	isSave, seq, _, pictureKey := cache.SavePicture(data)
-	if !isSave {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusOK)
-	url := "http://127.0.0.1:9090/api/v1/cache?seq=" + strconv.Itoa(int(seq)) + "&key=" + pictureKey
-
-	//respMap := make(map[string]string)
-	//respMap["url"] = url
-	//respByte, _ := json.Marshal(respMap)
-	w.Write([]byte(url))
-}
-
 func postCacheHandler(w http.ResponseWriter, r *http.Request) {
 
 	entry, err := io.ReadAll(r.Body)
@@ -120,7 +84,7 @@ func postCacheHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 
-	url := "http://127.0.0.1:9090/api/v1/cache?seq=" + strconv.Itoa(int(seq)) + "&key=" + pictureKey
+	url := fmt.Sprintf("http://127.0.0.1:%d/api/v1/cache?seq=%d&key=%s", port, seq, pictureKey)
 
 	//respMap := make(map[string]string)
 	//respMap["url"] = url

@@ -3,10 +3,10 @@ package pictureCache
 import (
 	"bytes"
 	"fmt"
+	"github.com/SeeJson/cfastjson"
 	"github.com/SeeJson/picCacheServer/bytespool"
 	"github.com/valyala/fastjson"
 	"math/rand"
-	"strconv"
 	"time"
 )
 
@@ -57,7 +57,7 @@ type SearchPIC struct {
 
 // PictureCache -
 type PictureCache struct {
-	//最大内存分配量，10M对齐
+	//最大内存分配量，10M对齐 单位byte
 	maxMemory uint64
 
 	//已经使用的内存空间
@@ -79,7 +79,7 @@ type PictureCache struct {
 
 // Init -
 func (cache *PictureCache) Init(maxMemory uint64) {
-	cache.maxMemory = maxMemory
+	cache.maxMemory = maxMemory * 1024 * 1024
 	cache.seq = 0
 	cache.usedMemory = 0
 	cache.nodeIndex = nil
@@ -314,28 +314,16 @@ func (cache *PictureCache) getPicture(seq uint64, pictureFlag string) (pictureBu
 }
 
 // GetPicCacheInfo - pictureCache详细信息
-//func (cache *PictureCache) GetPicCacheInfo1() *fastjson.Value {
-//	cfjs := cfastjson.NewCfastjsonObj()
-//
-//	str := fmt.Sprintf("%0.4fMB", float64(cache.maxMemory)/1024/1024)
-//	cfjs.Set("maxMemory", str)
-//
-//	str = fmt.Sprintf("%0.4fMB", float64(cache.usedMemory)/1024/1024)
-//	cfjs.Set("usedMemory", str)
-//	cfjs.Set("pictures", len(cache.pictures))
-//	return cfjs.GetFastJsonVal()
-//}
-
 func (cache *PictureCache) GetPicCacheInfo() *fastjson.Value {
-	cfjs := &fastjson.Value{}
+	cfjs := cfastjson.NewCfastjsonObj()
 
 	str := fmt.Sprintf("%0.4fMB", float64(cache.maxMemory)/1024/1024)
-	cfjs.Set("maxMemory", fastjson.MustParse(str))
+	cfjs.Set("maxMemory", str)
 
 	str = fmt.Sprintf("%0.4fMB", float64(cache.usedMemory)/1024/1024)
-	cfjs.Set("usedMemory", fastjson.MustParse(str))
-	cfjs.Set("pictures", fastjson.MustParse(strconv.Itoa(len(cache.pictures))))
-	return cfjs
+	cfjs.Set("usedMemory", str)
+	cfjs.Set("total", len(cache.pictures))
+	return cfjs.GetFastJsonVal()
 }
 
 // 防爆破验证 false=消息过期不可访问，true=可正常访问
